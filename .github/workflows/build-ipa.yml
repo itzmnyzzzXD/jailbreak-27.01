@@ -62,12 +62,8 @@ jobs:
 
           mkdir -p "$RUNNER_TEMP/ipa/Payload"
           ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/Jailbreak2701.app"
-          /usr/bin/zip -qry "$IPA_PATH" "$RUNNER_TEMP/ipa/Payload"
-
-          # Normalize archive layout: IPA must have Payload/ at its root.
-          mkdir -p "$RUNNER_TEMP/ipa-final"
-          ditto "$APP_PATH" "$RUNNER_TEMP/ipa-final/Payload/Jailbreak2701.app"
-          (cd "$RUNNER_TEMP/ipa-final" && /usr/bin/zip -qry "$IPA_PATH" Payload)
+          # Run zip from the staging directory so Payload/ is at the IPA root.
+          (cd "$RUNNER_TEMP/ipa" && /usr/bin/zip -qry "$IPA_PATH" Payload)
 
           unzip -t "$IPA_PATH"
           shasum -a 256 "$IPA_PATH" | tee "$IPA_PATH.sha256"
