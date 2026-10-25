@@ -1,27 +1,5 @@
-name: Jailbreak2701
-options:
-  bundleIdPrefix: com.itzmnyzzz
-  deploymentTarget:
-    iOS: "15.0"
-
-settings:
-  base:
-    SWIFT_VERSION: "5.0"
-    TARGETED_DEVICE_FAMILY: "1,2"
-    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
-    GENERATE_INFOPLIST_FILE: YES
-    INFOPLIST_KEY_CFBundleDisplayName: "Jailbreak 27.0.1"
-    INFOPLIST_KEY_LSRequiresIPhoneOS: YES
-
-targets:
-  Jailbreak2701:
-    type: application
-    platform: iOS
-    sources:
-      - path: app
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.itzmnyzzz.jailbreak2701
-        PRODUCT_NAME: Jailbreak2701
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        SWIFT_VERSION: "5.0"
+# RETIRED PLACEHOLDER CONFIGURATION
+#
+# The former SwiftUI status app was not a jailbreak and has been removed.
+# This file remains only to make the retirement of that project explicit.
+# Do not use this file as a jailbreak build configuration.
