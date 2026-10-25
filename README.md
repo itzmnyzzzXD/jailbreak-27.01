@@ -1,48 +1,29 @@
-# Jailbreak 27.0.1
+# iPadOS 27.0.1 jailbreak research
 
-A SwiftUI starter app and GitHub Actions pipeline for producing an unsigned iOS IPA artifact.
+This repository does **not** currently contain a working jailbreak for iPad (10th generation) / iPadOS 27.0.1.
 
-## Important status
+## Research result
 
-This repository was initially empty. It does **not** contain an iOS 27.0.1 exploit chain, a kernel exploit, a bootrom exploit, a code-signing bypass, or a jailbreak implementation. The app is an informational status dashboard and does not jailbreak a device. A successful Xcode build only proves that the app compiled; it is not evidence of a working jailbreak.
+I reviewed the leading public iOS 27 projects and their stated support. The genuine Liter8/usbliter8 work targets specific A12/A13 devices and firmware workflows; palera1n targets A8–A11; Dopamine's published matrix does not include this target; and the Chollima iOS 27.0.1 demonstration has no public reproducible exploit source or verified A14 iPad installation path in the sources reviewed.
 
-## Build an IPA artifact
+The source-by-source findings, hardware reasoning and evidence requirements are in [docs/PUBLIC-JAILBREAK-RESEARCH.md](docs/PUBLIC-JAILBREAK-RESEARCH.md).
 
-The workflow at `.github/workflows/build-ipa.yml` runs on pushes to `main` that touch the app/project/workflow files, and can also be started manually:
+## Why there is no IPA release
 
-1. Open the repository's **Actions** tab.
-2. Select **Build iOS IPA artifact**.
-3. Choose **Run workflow** and run it on `main`.
-4. Open the completed run and download the `Jailbreak-27.0.1-IPA` artifact.
+The prior IPA build was only an informational SwiftUI app. It read ordinary device metadata and contained no exploit. Its successful CI build did not constitute a jailbreak. The placeholder app and its IPA build workflow are being removed so this repository does not generate or present that UI as a jailbreak.
 
-The artifact contains:
+A real port requires a compatible exploit chain, A14-specific mitigation bypasses, exact iPadOS 27.0.1 firmware patching, and device-level boot/bootstrap validation. Copying an A13 profile, adjusting a few offsets or making another app button cannot provide those primitives.
 
-- `Jailbreak-27.0.1-unsigned.ipa`
-- `Jailbreak-27.0.1-unsigned.ipa.sha256`
+## Status
 
-The workflow uses a macOS GitHub-hosted runner, Xcode, and XcodeGen. It generates the Xcode project from `project.yml`, builds for generic iOS devices with code signing disabled, packages the app into `Payload/Jailbreak2701.app`, and validates the ZIP container.
+**No compatible public jailbreak implementation found for this exact target.** This says what the public evidence supports; it does not prove that private research is impossible. If a compatible public source or reproducible exploit release appears, it can be evaluated against the target device and firmware before integration.
 
-## Installing the artifact
+## Sources
 
-The IPA produced by this workflow is **unsigned**. Standard iOS installation requires a valid signature and provisioning profile. Use a legitimate sideloading process that signs the app for your device; do not expect the raw artifact to install directly from Files or Safari. The app does not require or request jailbreak privileges.
-
-## Local build
-
-On a Mac with Xcode and XcodeGen installed:
-
-```sh
-brew install xcodegen
-xcodegen generate --spec project.yml
-xcodebuild \
-  -project Jailbreak2701.xcodeproj \
-  -scheme Jailbreak2701 \
-  -configuration Release \
-  -sdk iphoneos \
-  -destination 'generic/platform=iOS' \
-  -derivedDataPath build \
-  CODE_SIGNING_ALLOWED=NO build
-```
-
-## Compatibility
-
-The app targets iOS 15.0 and later as a normal sandboxed SwiftUI app. That is the app's deployment target, not jailbreak compatibility. A real jailbreak requires public, verified exploit code and testing on the exact device and build.
+- [Xplo8E/Liter8](https://github.com/Xplo8E/Liter8)
+- [wh1te4ever/usbliter8-fun](https://github.com/wh1te4ever/usbliter8-fun)
+- [opa334/Dopamine](https://github.com/opa334/Dopamine)
+- [palera1n](https://github.com/palera1n/palera1n)
+- [Serotonin](https://github.com/SerotoninApp/Serotonin)
+- [Calif / Chollima research](https://blog.calif.io/p/iphone)
+- [Apple iPad (10th generation) specifications](https://support.apple.com/en-us/111840)
