@@ -12,6 +12,30 @@ Upstream usbliter8 work uses a SecureROM/DFU path with external RP2350 hardware.
 
 Calif's Chollima demonstration is a credible public report of a private iOS 27.0.1 jailbreak demonstration. The exploit source, reproducible chain and supported-device matrix were not publicly available in the material reviewed. A demonstration on an iPhone 18 Pro does not prove that an A14 iPad is supported or give enough material to build an installable public jailbreak.
 
+## How the real projects work (source-level review)
+
+### Liter8 execution path
+
+The source separates firmware identification, patch discovery, guarded patching, and the physical-device workflow:
+
+1. `IPSWManifestInspector` reads `BuildManifest.plist` from the IPSW and extracts product version, Apple build ID, product types, device class, chip ID and board ID. It does not trust the archive filename.
+2. Firmware workflow profiles gate actions for an exact device/board/build. Kernel resolver profiles separately recognize the embedded XNU fingerprint and map it to reviewed signature/payload families. Having a resolver profile alone does not authorize a full restore/boot workflow.
+3. Semantic resolvers inspect actual binaries to locate intended sites; their offsets are derived from the target input, not copied as a generic offset table.
+4. `GuardedPatchApplier` preflights every record, validates lengths and overlap, checks that each byte range equals the expected original bytes or the exact already-applied replacement, and only then writes the full plan. It aborts on a mismatched pre-image instead of partially patching.
+5. The host CLI and Python orchestration prepare custom firmware, capture/use an Apple APTicket, construct and boot an SSH restore ramdisk, provision a bootstrap/root filesystem, then boot and finalize the modified OS. This is a Mac/USB/firmware workflow, not logic an ordinary iOS app can perform from its sandbox.
+
+Those are reasons Liter8 is a real research implementation—but also why adding an A14 product label would be incorrect. The existing workflow profile and device evidence are for `n104ap` / iPhone 11 (A13). An A14 port must independently identify its target firmware components, resolve and fixture every required patch, add the correct hardware boot plan, and be proven through device-level restore, boot and repeat-boot tests. The maintainers' own firmware-support guide says resolver success and fixtures do not, by themselves, prove device support.
+
+### Why older jailbreak projects cannot simply be combined
+
+- palera1n uses the checkm8 bootROM exploit path, and its official support table is limited to A8–A11/T2. A14 is not a compatible checkm8 target.
+- Dopamine has an actual exploit manager, device/OS-specific exploit implementations and bootstrap logic; its README's listed firmware/chip matrix excludes A14 on iPadOS 27.0.1. Copying its IPA or exploit manager would not supply a supported primitive for this target.
+- usbliter8 is a DFU/firmware route based on different low-level hardware behavior and patches. A12/A13 support in the upstream documentation does not imply A14 support, and build-specific kernel/userland patch bytes cannot be carried to a new board without analysis.
+- Chollima's demonstration indicates the private researchers have a working chain on the demonstrated device. Without the code or a public technical disclosure that establishes the chain, its individual primitives cannot responsibly be reconstructed from the video or inferred from unrelated Apple CVE entries.
+
+### Release and evidence checks
+
+The public source/release pages checked for Liter8, Dopamine, palera1n and Serotonin did not expose a published A14 + iPadOS 27.0.1 implementation. Calif's official post promises release 'in due time', but the reporting available on 2026-10-25 still says no public end-user tool or exploit details are available. The Apple Wiki's current jailbreak status table likewise lists no tool for iPad (10th generation) on 27.0.1; it shows Dopamine's old supported firmware ceiling for that model instead.
 ## Target-specific compatibility
 
 Apple's specifications list the iPad (10th generation) with A14 Bionic: https://support.apple.com/en-us/111840.
