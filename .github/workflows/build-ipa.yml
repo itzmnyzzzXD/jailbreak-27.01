@@ -1,0 +1,84 @@
+name: Build iOS IPA artifact
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - "project.yml"
+      - ".github/workflows/build-ipa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ipa-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ipa:
+    name: Build unsigned iOS IPA
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec project.yml
+
+      - name: Build for physical iOS devices
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project Jailbreak2701.xcodeproj \
+            -scheme Jailbreak2701 \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package unsigned IPA and checksum
+        run: |
+          set -euo pipefail
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/Jailbreak2701.app"
+          IPA_PATH="$GITHUB_WORKSPACE/Jailbreak-27.0.1-unsigned.ipa"
+
+          test -d "$APP_PATH"
+          plutil -lint "$APP_PATH/Info.plist"
+
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/Jailbreak2701.app"
+          /usr/bin/zip -qry "$IPA_PATH" "$RUNNER_TEMP/ipa/Payload"
+
+          # Normalize archive layout: IPA must have Payload/ at its root.
+          mkdir -p "$RUNNER_TEMP/ipa-final"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa-final/Payload/Jailbreak2701.app"
+          (cd "$RUNNER_TEMP/ipa-final" && /usr/bin/zip -qry "$IPA_PATH" Payload)
+
+          unzip -t "$IPA_PATH"
+          shasum -a 256 "$IPA_PATH" | tee "$IPA_PATH.sha256"
+          ls -lh "$IPA_PATH" "$IPA_PATH.sha256"
+
+      - name: Upload IPA build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jailbreak-27.0.1-IPA
+          path: |
+            Jailbreak-27.0.1-unsigned.ipa
+            Jailbreak-27.0.1-unsigned.ipa.sha256
+          if-no-files-found: error
+          retention-days: 14
